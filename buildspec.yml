@@ -8,7 +8,7 @@ phases:
     commands:
       - echo Building the Docker image...
       - docker build -t quest .
-      - docker tag test-quest:latest 207990345110.dkr.ecr.us-east-1.amazonaws.com/test-quest:latest
+      - docker tag quest:latest 207990345110.dkr.ecr.us-east-1.amazonaws.com/quest:latest
   post_build:
     commands:
       - echo Pushing the Docker image...
