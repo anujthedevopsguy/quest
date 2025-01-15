@@ -2,6 +2,7 @@ FROM node:10-alpine
 
 # Set working directory
 WORKDIR /home/node/app
+RUN chown -R node:node /home/node
 
 # Copy package.json and install dependencies
 COPY --chown=node:node package.json ./

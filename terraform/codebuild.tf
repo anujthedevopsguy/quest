@@ -61,10 +61,10 @@ resource "aws_codebuild_project" "nodejs_build" {
   name           = "quest-codebuild"
   description    = "Builds a Node.js Docker image and pushes it to ECR"
   service_role   = aws_iam_role.quest_codebuild_role.arn
-  source_version = "master"
+  source_version = "main"
   source {
     type            = "GITHUB"
-    location        = "https://github.com/rearc/quest.git"
+    location        = "https://github.com/rearc/quest.git" https://github.com/anujthedevopsguy/quest.git
     git_clone_depth = 1
   }
 
