@@ -64,7 +64,7 @@ resource "aws_codebuild_project" "nodejs_build" {
   source_version = "main"
   source {
     type            = "GITHUB"
-    location        = "https://github.com/rearc/quest.git" https://github.com/anujthedevopsguy/quest.git
+    location        = "https://github.com/anujthedevopsguy/quest.git"
     git_clone_depth = 1
   }
 

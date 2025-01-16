@@ -12,7 +12,7 @@ variable "subnet_cidrs" {
 }
 
 variable "container_port_1" {
-  default = 8080
+  default = 3000
 }
 
 # variable "container_port_2" {

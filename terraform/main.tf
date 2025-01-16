@@ -147,7 +147,7 @@ resource "aws_lb_target_group" "ecs" {
 
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.ecs_quest_alb.id
-  port              = 80
+  port              = 443
   protocol          = "HTTP"
   default_action {
     type             = "forward"
@@ -167,7 +167,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
   container_definitions = jsonencode([
     {
       name      = "quest"
-      image     = "quest:latest"
+      image     = "207990345110.dkr.ecr.us-east-1.amazonaws.com/quest:latest"
       essential = true
       portMappings = [
         {
