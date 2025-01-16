@@ -1,17 +1,17 @@
 FROM node:10-alpine
 
+USER node
+
+RUN mkdir -p /home/node/app && chown -R node:node /home/node
+
 # Set working directory
 WORKDIR /home/node/app
-RUN chown -R node:node /home/node
 
-# Copy package.json and install dependencies
-COPY --chown=node:node package.json ./
-USER node
-RUN npm install
+RUN npm install && npm install express
 
-# Copy the rest of the application
+# Copy  the application
 COPY --chown=node:node . .
 
 # Expose port and define entry point
 EXPOSE 8080
-CMD ["node", "bin/000.js"]
+ENTRYPOINT ["node", "src/000.js"]
