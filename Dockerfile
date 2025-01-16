@@ -13,5 +13,5 @@ RUN npm install && npm install express
 COPY --chown=node:node . .
 
 # Expose port and define entry point
-EXPOSE 8080
+EXPOSE 3000
 ENTRYPOINT ["node", "src/000.js"]
