@@ -1,5 +1,4 @@
 # Setup repo in the ECR
-# Create an ECR Repository
 resource "aws_ecr_repository" "quest" {
   name = "quest"
 }
@@ -85,6 +84,10 @@ resource "aws_codebuild_project" "nodejs_build" {
             name  = "REPO_URI"
             value = aws_ecr_repository.quest.repository_url
         }
+    environment_variable {
+          name  = "ACCOUNT_ID"
+          value = var.account_id
+      }
     }
 
   logs_config {

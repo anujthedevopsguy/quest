@@ -1,6 +1,6 @@
 # Variables
 variable "region" {
-  default = "us-east-1"
+  default = "ap-south-1"
 }
 
 variable "vpc_cidr" {
@@ -15,6 +15,10 @@ variable "container_port_1" {
   default = 3000
 }
 
-# variable "container_port_2" {
-#   default = 80
-# }
+variable "certificate_arn" {
+  default="arn:aws:acm:ap-south-1:207990345110:certificate/6647cbd9-a848-46fc-a820-a8fef3cdea89"
+}
+
+variable "account_id" {
+  default= "207990345110"
+}

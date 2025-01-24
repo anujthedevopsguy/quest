@@ -100,8 +100,8 @@ resource "aws_security_group" "quest_sg" {
 resource "aws_security_group" "ecs_sg" {
   vpc_id = aws_vpc.quest_vpc.id
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = var.container_port_1
+    to_port     = var.container_port_1
     protocol    = "tcp"
     security_groups = [aws_security_group.quest_sg.id]
   }
@@ -149,6 +149,7 @@ resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.ecs_quest_alb.id
   port              = 443
   protocol          = "HTTP"
+  certificate_arn   = var.certificate_arn
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.ecs.arn
@@ -167,7 +168,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
   container_definitions = jsonencode([
     {
       name      = "quest"
-      image     = "207990345110.dkr.ecr.us-east-1.amazonaws.com/quest:latest"
+      image     = "${var.account_id}.dkr.ecr.us-east-1.amazonaws.com/quest:latest"
       essential = true
       portMappings = [
         {
@@ -238,16 +239,13 @@ resource "aws_iam_policy" "ecs_task_policy" {
           "ecr:BatchCheckLayerAvailability",
           "ecr:GetDownloadUrlForLayer",
           "ecr:DescribeRepositories",
-          "ecr:BatchGetImage"
+          "ecr:BatchGetImage",
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "cloudwatch:*",
+          "logs:*"
         ],
         Resource = "*"
-      },
-      {
-        Effect = "Allow",
-        Action = [
-          "secretsmanager:GetSecretValue"
-        ],
-        Resource = "arn:aws:secretsmanager:us-east-1:207990345110:secret:quest-secret"
       }
     ]
   })

@@ -8,10 +8,10 @@ phases:
     commands:
       - echo Building the Docker image...
       - docker build -t quest .
-      - docker tag quest:latest 207990345110.dkr.ecr.us-east-1.amazonaws.com/quest:latest
+      - docker tag quest:latest $ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/quest:latest
   post_build:
     commands:
       - echo Pushing the Docker image...
-      - docker push 207990345110.dkr.ecr.us-east-1.amazonaws.com/quest:latest
+      - docker push $ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/quest:latest
       - echo Updating ECS service...
       - aws ecs update-service --cluster quest-cluster --service ecs-service --force-new-deployment --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50"
