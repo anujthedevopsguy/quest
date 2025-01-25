@@ -89,7 +89,11 @@ resource "aws_codebuild_project" "nodejs_build" {
         }
     environment_variable {
           name  = "ACCOUNT_ID"
-          value = var.account_id
+          value = data.aws_caller_identity.current.account_id
+      }
+    environment_variable {
+          name  = "REGION"
+          value = var.region
       }
     }
 

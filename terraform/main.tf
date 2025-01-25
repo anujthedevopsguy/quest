@@ -1,5 +1,6 @@
 
-
+# current context 
+data "aws_caller_identity" "current" {}
 # Provider
 provider "aws" {
   region = var.region
@@ -192,7 +193,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
   container_definitions = jsonencode([
     {
       name      = "quest"
-      image     = "${var.account_id}.dkr.ecr.ap-south-1.amazonaws.com/quest:latest"
+      image     = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/quest:latest"
       secrets = [
         {
         valueFrom = data.aws_ssm_parameter.secret.arn

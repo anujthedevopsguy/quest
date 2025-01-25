@@ -3,15 +3,15 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
+      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
   build:
     commands:
       - echo Building the Docker image...
       - docker build -t quest .
-      - docker tag quest:latest $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/quest:latest
+      - docker tag quest:latest $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/quest:latest
   post_build:
     commands:
       - echo Pushing the Docker image...
-      - docker push $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/quest:latest
+      - docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/quest:latest
       - echo Updating ECS service...
       - aws ecs update-service --cluster quest-cluster --service ecs-service --force-new-deployment --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50"
