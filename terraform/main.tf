@@ -192,18 +192,15 @@ resource "aws_ecs_task_definition" "ecs_task" {
   container_definitions = jsonencode([
     {
       name      = "quest"
-      secret = [
+      image     = "${var.account_id}.dkr.ecr.ap-south-1.amazonaws.com/quest:latest"
+      secrets = [
         {
         valueFrom = data.aws_ssm_parameter.secret.arn
         name = "SECRET_WORD" 
       }
       ]
-      image     = "${var.account_id}.dkr.ecr.ap-south-1.amazonaws.com/quest:latest"
+      
       essential = true
-      environment    = []
-      mountPoints    = []
-      systemControls = []
-      volumesFrom    = []
       portMappings = [
         {
           name          = "quest-3000-tcp"
