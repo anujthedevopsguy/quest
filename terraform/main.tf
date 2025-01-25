@@ -72,7 +72,7 @@ resource "aws_route_table" "private_subnet_route" {
   vpc_id = aws_vpc.quest_vpc.id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.nat.id
+    nat_gateway_id = aws_nat_gateway.nat.id
   }
   tags = { Name = "private-route-table" }
 }
@@ -172,31 +172,46 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+data "aws_ssm_parameter" "secret" {
+  name = "SECRET_WORD"
+}
 # Task Definition
 resource "aws_ecs_task_definition" "ecs_task" {
   family                   = "ecs-task"
+  
   network_mode             = "awsvpc"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn = aws_iam_role.ecs_task_execution_role.arn
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
-
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "X86_64"
+  }
   container_definitions = jsonencode([
     {
       name      = "quest"
+      secret = [
+        {
+        valueFrom = data.aws_ssm_parameter.secret.arn
+        name = "SECRET_WORD" 
+      }
+      ]
       image     = "${var.account_id}.dkr.ecr.ap-south-1.amazonaws.com/quest:latest"
       essential = true
+      environment    = []
+      mountPoints    = []
+      systemControls = []
+      volumesFrom    = []
       portMappings = [
         {
+          name          = "quest-3000-tcp"
+          protocol      = "tcp"
           containerPort = var.container_port_1
           hostPort      = var.container_port_1
         }
-      ],
-      secret = {
-        valueFrom = "SECRET_WORD"
-        name = "SECRET_WORD" 
-      }
+      ]
     }
   ])
 }
@@ -208,6 +223,7 @@ resource "aws_ecs_service" "ecs_service" {
   task_definition = aws_ecs_task_definition.ecs_task.arn
   desired_count   = 2
   launch_type     = "FARGATE"
+  deployment_minimum_healthy_percent = 50
   network_configuration {
     #subnets         = [aws_subnet.pri_subnet_1.id, aws_subnet.pri_subnet_2.id]
     subnets          = aws_subnet.private_subnet[*].id
