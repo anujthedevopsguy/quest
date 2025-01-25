@@ -1,6 +1,9 @@
 # Setup repo in the ECR
 resource "aws_ecr_repository" "quest" {
   name = "quest"
+  image_scanning_configuration {
+    scan_on_push = true
+  }
 }
 
 # IAM Role for CodeBuild

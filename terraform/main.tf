@@ -47,36 +47,52 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# private subnet settings
+# NAT Gateway
+resource "aws_eip" "nat" {
+  domain = "vpc"
 
-# Create Route Table for Private Subnets
-resource "aws_route_table" "private_route_table" {
+  tags = {
+    Name = "quest-nat"
+  }
+}
+
+resource "aws_nat_gateway" "nat" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public[0].id
+
+  tags = {
+    Name = "quest-nat"
+  }
+
+  depends_on = [aws_internet_gateway.igw]
+}
+
+# Create private Subnets
+resource "aws_route_table" "private_subnet_route" {
   vpc_id = aws_vpc.quest_vpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_nat_gateway.nat.id
+  }
+  tags = { Name = "private-route-table" }
+}
+resource "aws_subnet" "private_subnet" {
+  count                   = 2 
+  vpc_id                  = aws_vpc.quest_vpc.id
+  cidr_block              = var.private_subnet_cidrs[count.index]
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  map_public_ip_on_launch = false
   tags = {
-    Name = "private-route-table"
+    Name = "private-subnet-${count.index}"
   }
 }
 
-# Create Subnets
-resource "aws_subnet" "pri_subnet_1" {
-  vpc_id                  = aws_vpc.quest_vpc.id
-  cidr_block              = "10.0.5.0/24"
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = false
-  tags = {
-    Name = "private-subnet-1"
-  }
+resource "aws_route_table_association" "private_subnet_route_association" {
+  count          = 2
+  subnet_id      = aws_subnet.private_subnet[count.index].id
+  route_table_id = aws_route_table.private_subnet_route.id
 }
 
-resource "aws_subnet" "pri_subnet_2" {
-  vpc_id                  = aws_vpc.quest_vpc.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "us-east-1b"
-  map_public_ip_on_launch = false
-  tags = {
-    Name = "private-subnet-2"
-  }
-}
 
 # Security Group for load balancer
 resource "aws_security_group" "quest_sg" {
@@ -148,7 +164,7 @@ resource "aws_lb_target_group" "ecs" {
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.ecs_quest_alb.id
   port              = 443
-  protocol          = "HTTP"
+  protocol          = "HTTPS"
   certificate_arn   = var.certificate_arn
   default_action {
     type             = "forward"
@@ -160,6 +176,7 @@ resource "aws_lb_listener" "http" {
 resource "aws_ecs_task_definition" "ecs_task" {
   family                   = "ecs-task"
   network_mode             = "awsvpc"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn = aws_iam_role.ecs_task_execution_role.arn
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -168,7 +185,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
   container_definitions = jsonencode([
     {
       name      = "quest"
-      image     = "${var.account_id}.dkr.ecr.us-east-1.amazonaws.com/quest:latest"
+      image     = "${var.account_id}.dkr.ecr.ap-south-1.amazonaws.com/quest:latest"
       essential = true
       portMappings = [
         {
@@ -192,7 +209,8 @@ resource "aws_ecs_service" "ecs_service" {
   desired_count   = 2
   launch_type     = "FARGATE"
   network_configuration {
-    subnets         = [aws_subnet.pri_subnet_1.id, aws_subnet.pri_subnet_2.id]
+    #subnets         = [aws_subnet.pri_subnet_1.id, aws_subnet.pri_subnet_2.id]
+    subnets          = aws_subnet.private_subnet[*].id
     security_groups = [aws_security_group.ecs_sg.id]
   }
   load_balancer {
@@ -256,6 +274,5 @@ resource "aws_iam_role_policy_attachment" "ecs_task_policy_attachment" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = aws_iam_policy.ecs_task_policy.arn
 }
-
 
 
